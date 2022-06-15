@@ -16,6 +16,18 @@ let playerO;
 
 const players = [];
 
+//codes gagnants:
+const winningCodes = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6]
+];
+
 let currentPlayer = "";
 let currentClass ="";
 let isGameStarted = false;
@@ -36,7 +48,7 @@ const newPlayers = () => {
     playerO = $inputPlayer2.value;
 
     players.push(playerX, playerO);
-    console.log(players);
+    //console.log(players);
   });
 };
 
@@ -50,7 +62,7 @@ const newGame = () => {
     cell.classList.remove('circle');
   });
   //2 - sélectionner joueur (random?)
-  currentPlayer = players[Math.round(Math.random() * (players.length - 1))];
+  currentPlayer = players[Math.round(Math.random() * 2) +1];
     //2a - link currentPlayer to currentClass
   currentPlayer === playerX
    ? currentClass = "x" 
@@ -60,23 +72,12 @@ const newGame = () => {
   $board.classList.add(currentClass);
 };
 
-//Loop sur les cells
-$allCells.forEach (cell => {
-  //Event handleCell : "click" !
-  cell.addEventListener('click', (e) => {
-    e.preventDefault();
-    //Ajout x ou o si case est vide
-    //add current class à la target
-      e.target.classList.add(currentClass);
-
-    //change User
-    changeUser();
-    $board.classList.add(currentClass);
-    console.log(currentPlayer);
-  },
-  {once:true}
-  );
-  
+//relancer nouveau jeu:
+$restartBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  $endMessage.classList.remove('show');
+  init();
+  return
 });
 
 //change user
@@ -91,9 +92,72 @@ const changeUser = () => {
   };
   //ajouter en html le currentPlayer
   $playerTurn.innerHTML = `<p>C'est au tour de: ${currentPlayer}</p>`;
+};
+
+//Finir le jeu:
+// check if winning code
+const checkWin = (currentClass) => {
+  //Check si au moins une combinaison gagnante est présente dans allCells
+  return winningCodes.some(winCode => {
+    return winCode.every(index => {
+      return $allCells[index].classList.contains(currentClass);
+    })
+  })
 }
 
-//Verifier si jeu finit ou non
+//Check si toutes les cellules sont remplies mais pas de winning code
+const cellsFull = () => {
+  return [...$allCells].every(cell => {
+    return cell.classList.contains('x') || cell.classList.contains('circle');
+  })
+}
+
+//endGame
+//Gagné
+const endGameWin = () => {
+  $endMessage.classList.add('show');
+  $endMessageText.innerHTML = `${currentPlayer}, c'est gagné!`
+}
+
+//egalité
+const endGameEqty = () => {
+  $endMessage.classList.add('show');
+  $endMessageText.innerHTML = `Egalité!`
+}
+
+//Loop sur les cells
+$allCells.forEach (cell => {
+  //Event handleCell : "click" !
+  cell.addEventListener('click', (e) => {
+    e.preventDefault();
+    //Ajout x ou o si case est vide
+    //add current class à la target
+      e.target.classList.add(currentClass);
+      //Verifier si jeu finit ou non
+      // Un joueur a gagné?
+      if(checkWin(currentClass)){
+        console.log(checkWin(currentClass));
+        //endGame
+        endGameWin();
+        return
+        //toutes les cellules sont pleine?
+      } else if(cellsFull()) {
+        console.log(cellsFull());
+        //endGame Egalite
+        endGameEqty();
+        return
+      } else {
+        //on recommence
+      }
+
+    //change User
+    changeUser();
+    $board.classList.add(currentClass);
+    //console.log(currentPlayer);
+  },
+  {once:true}
+  );
+});
 
 //2 3contiguous cells contain x?
   //playeur win
@@ -114,9 +178,6 @@ const changeUser = () => {
   //if board contains x => replace by circle
     //else replace by x
 
-//3 renderGame();
-
-//renderGame
 
 init();
 
